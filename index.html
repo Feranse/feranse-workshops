@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompting with Intention — Workshop Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FCF7F4;
+    --blush:#F6E5DF;
+    --blush-deep:#EFCFC6;
+    --rose:#D8657F;
+    --wine:#6E2742;
+    --wine-soft:#8a4862;
+    --ink:#2C1B22;
+    --brass:#B8945A;
+    --paper:#FFFFFF;
+    --display:'Fraunces',serif;
+    --body:'Hanken Grotesk',system-ui,sans-serif;
+    --mono:'IBM Plex Mono',monospace;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+
+  html,body{height:100%;overflow:hidden}
+
+  body{
+    font-family:var(--body);
+    color:var(--ink);
+    background:var(--cream);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---- deck mechanics ---- */
+  .deck{position:fixed;inset:0;overflow:hidden}
+  .track{
+    display:flex;height:100%;width:100%;
+    transition:transform .62s cubic-bezier(.76,0,.24,1);
+    will-change:transform;
+  }
+  .slide{
+    position:relative;
+    flex:0 0 100%;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:clamp(2.4rem,6vw,6.5rem) clamp(2rem,8vw,9rem) clamp(5.5rem,9vw,7rem);
+    background:
+      radial-gradient(120% 90% at 12% 8%, rgba(216,101,127,.10), transparent 55%),
+      radial-gradient(120% 120% at 100% 100%, rgba(110,39,66,.07), transparent 50%),
+      var(--cream);
+  }
+  .slide-inner{max-width:1180px;width:100%;margin:0 auto}
+
+  /* ---- shared type ---- */
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:clamp(.66rem,1vw,.82rem);
+    letter-spacing:.28em;
+    text-transform:uppercase;
+    color:var(--rose);
+    display:flex;align-items:center;gap:.85rem;
+    margin-bottom:clamp(1.1rem,2.4vw,2rem);
+  }
+  .eyebrow::before{
+    content:"";width:clamp(28px,4vw,52px);height:1px;background:var(--brass);
+  }
+  h1{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:clamp(2.6rem,7.4vw,6.2rem);
+    line-height:.98;
+    letter-spacing:-.02em;
+    color:var(--wine);
+  }
+  h2{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:clamp(2rem,5.2vw,4rem);
+    line-height:1.02;
+    letter-spacing:-.015em;
+    color:var(--wine);
+  }
+  .lede{
+    font-size:clamp(1.05rem,1.9vw,1.55rem);
+    line-height:1.5;
+    max-width:46ch;
+    color:var(--ink);
+    margin-top:clamp(1rem,2vw,1.6rem);
+  }
+  .lede strong{color:var(--wine);font-weight:600}
+  em.brand{font-style:italic;color:var(--rose);font-family:var(--display);font-weight:500}
+
+  /* ---- title slide ---- */
+  .title-slide .kicker{
+    font-family:var(--mono);font-size:clamp(.7rem,1vw,.85rem);
+    letter-spacing:.26em;text-transform:uppercase;color:var(--wine-soft);
+    margin-bottom:1.5rem;
+  }
+  .title-slide h1{font-size:clamp(3rem,9vw,7.4rem)}
+  .title-slide .sub{
+    font-size:clamp(1.1rem,2.1vw,1.7rem);
+    color:var(--wine-soft);margin-top:1.6rem;max-width:40ch;line-height:1.45;
+  }
+  .seal{
+    margin-top:clamp(2rem,4vw,3rem);
+    font-family:var(--mono);font-size:.78rem;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--rose);
+    display:inline-flex;align-items:center;gap:.7rem;
+  }
+  .seal span{width:7px;height:7px;border-radius:50%;background:var(--rose)}
+
+  /* ---- before / after ---- */
+  .compare{
+    display:grid;grid-template-columns:1fr 1fr;gap:clamp(1rem,2.5vw,2rem);
+    margin-top:clamp(1.6rem,3vw,2.4rem);
+  }
+  .card{
+    background:var(--paper);
+    border:1px solid var(--blush-deep);
+    border-radius:14px;
+    padding:clamp(1.1rem,2vw,1.7rem);
+  }
+  .card .tag{
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+    display:inline-block;margin-bottom:.8rem;
+  }
+  .card.vague{border-color:#e7cfc8}
+  .card.vague .tag{color:#b9908a}
+  .card.sharp{border-color:var(--rose);box-shadow:0 14px 34px -22px rgba(110,39,66,.5)}
+  .card.sharp .tag{color:var(--rose)}
+  .card p{font-size:clamp(.95rem,1.4vw,1.18rem);line-height:1.45}
+  .card .quote{font-family:var(--mono);font-size:clamp(.82rem,1.2vw,1rem);line-height:1.5;color:var(--ink)}
+
+  /* ---- overview grid ---- */
+  .grid4{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(.8rem,1.6vw,1.4rem);
+    margin-top:clamp(1.8rem,3.2vw,2.8rem);
+  }
+  .fw-card{
+    background:var(--paper);border:1px solid var(--blush-deep);border-radius:14px;
+    padding:clamp(1rem,1.8vw,1.6rem);display:flex;flex-direction:column;gap:.5rem;
+    position:relative;overflow:hidden;
+  }
+  .fw-card::before{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:var(--rose)}
+  .fw-card .ac{font-family:var(--display);font-weight:700;font-size:clamp(1.4rem,2.6vw,2.1rem);color:var(--wine);letter-spacing:.02em}
+  .fw-card .full{font-family:var(--mono);font-size:.68rem;letter-spacing:.05em;color:var(--wine-soft);text-transform:uppercase}
+  .fw-card .job{font-size:clamp(.86rem,1.3vw,1.04rem);line-height:1.38;margin-top:.2rem}
+  .num{font-family:var(--mono);font-size:.7rem;color:var(--brass);letter-spacing:.1em}
+
+  /* ---- framework slide ---- */
+  .fw-layout{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(1.6rem,4vw,4rem);align-items:start}
+  .fw-head{margin-bottom:clamp(1.1rem,2vw,1.6rem)}
+  .fw-head h2{display:flex;align-items:baseline;gap:1rem;flex-wrap:wrap}
+  .fw-head .ac-big{font-size:clamp(2.4rem,6vw,4.6rem);color:var(--rose)}
+  .best{
+    display:inline-block;margin-top:1rem;
+    background:var(--blush);border:1px solid var(--blush-deep);
+    border-radius:999px;padding:.5rem 1.1rem;
+    font-size:clamp(.82rem,1.3vw,1.05rem);color:var(--wine);
+  }
+  .best b{font-weight:600}
+  .agent-note{margin-top:.9rem;font-size:clamp(.82rem,1.25vw,1.02rem);line-height:1.4;color:var(--wine);background:linear-gradient(90deg,rgba(216,101,127,.12),transparent);border-left:2px solid var(--rose);padding:.55rem .85rem;border-radius:0 8px 8px 0}
+  .agent-note b{font-weight:600;color:var(--wine)}
+
+  .letters{border-left:2px solid var(--brass);padding-left:clamp(1rem,2vw,1.6rem);display:flex;flex-direction:column;gap:clamp(.7rem,1.4vw,1.1rem)}
+  .letter-row{display:flex;align-items:baseline;gap:1rem;opacity:0;transform:translateY(14px)}
+  .slide.is-active .letter-row{opacity:1;transform:none;transition:opacity .5s ease,transform .5s ease}
+  .slide.is-active .letter-row:nth-child(1){transition-delay:.10s}
+  .slide.is-active .letter-row:nth-child(2){transition-delay:.20s}
+  .slide.is-active .letter-row:nth-child(3){transition-delay:.30s}
+  .slide.is-active .letter-row:nth-child(4){transition-delay:.40s}
+  .slide.is-active .letter-row:nth-child(5){transition-delay:.50s}
+  .letter-row .lt{font-family:var(--display);font-weight:700;font-size:clamp(1.5rem,2.8vw,2.3rem);color:var(--rose);width:1.3em;flex:none}
+  .letter-row .def b{font-weight:600;color:var(--wine);font-size:clamp(1rem,1.5vw,1.22rem)}
+  .letter-row .def span{display:block;font-size:clamp(.85rem,1.25vw,1.02rem);color:var(--ink);line-height:1.36;opacity:.85}
+
+  .example{
+    margin-top:clamp(1.2rem,2.2vw,1.8rem);
+    background:#fffdfc;border:1px solid var(--blush-deep);border-left:3px solid var(--rose);
+    border-radius:10px;padding:clamp(.9rem,1.6vw,1.3rem);
+  }
+  .example .lbl{font-family:var(--mono);font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--rose);margin-bottom:.6rem}
+  .example p{font-family:var(--mono);font-size:clamp(.78rem,1.15vw,.96rem);line-height:1.62;color:var(--ink)}
+  .example p b{color:var(--wine);font-weight:600}
+
+  /* ---- ladder slide ---- */
+  .ladder{display:flex;align-items:flex-end;gap:clamp(.6rem,1.6vw,1.4rem);margin-top:clamp(1.8rem,3vw,2.6rem)}
+  .rung{flex:1;background:var(--paper);border:1px solid var(--blush-deep);border-radius:12px 12px 0 0;border-bottom:none;padding:clamp(.9rem,1.6vw,1.4rem);display:flex;flex-direction:column;gap:.45rem}
+  .rung:nth-child(1){min-height:clamp(150px,26vh,250px);background:linear-gradient(180deg,#fff,#fff)}
+  .rung:nth-child(2){min-height:clamp(195px,33vh,310px)}
+  .rung:nth-child(3){min-height:clamp(240px,40vh,370px)}
+  .rung:nth-child(4){min-height:clamp(285px,47vh,430px);border-color:var(--rose)}
+  .rung .ac{font-family:var(--display);font-weight:700;font-size:clamp(1.3rem,2.6vw,2rem);color:var(--wine)}
+  .rung .when{font-size:clamp(.82rem,1.3vw,1.05rem);line-height:1.4}
+  .rung .lvl{font-family:var(--mono);font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);margin-top:auto}
+  .ladder-axis{margin-top:.9rem;display:flex;justify-content:space-between;font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--wine-soft)}
+
+  /* ---- recap ---- */
+  .recap-list{margin-top:clamp(1.4rem,2.6vw,2.2rem);display:flex;flex-direction:column;gap:.85rem;max-width:52ch}
+  .recap-list li{list-style:none;display:flex;gap:.9rem;align-items:baseline;font-size:clamp(1rem,1.6vw,1.32rem);line-height:1.4}
+  .recap-list .k{font-family:var(--display);font-weight:700;color:var(--rose);flex:none;width:3.6em}
+  .turn{margin-top:clamp(1.6rem,3vw,2.4rem);font-family:var(--display);font-style:italic;font-size:clamp(1.3rem,2.6vw,2rem);color:var(--wine)}
+
+  /* ---- source footnote ---- */
+  .source{
+    position:absolute;left:clamp(2rem,8vw,9rem);bottom:clamp(2.6rem,5vw,3.6rem);
+    font-family:var(--mono);font-size:clamp(.62rem,.85vw,.74rem);letter-spacing:.04em;
+    color:var(--wine-soft);max-width:60ch;
+  }
+  .source a{color:var(--wine-soft);text-decoration:underline;text-underline-offset:2px}
+  .source a:hover{color:var(--rose)}
+  .source b{color:var(--rose);font-weight:500}
+
+  /* ---- chrome: nav bar ---- */
+  .chrome{
+    position:fixed;left:0;right:0;bottom:0;height:clamp(3.4rem,6vh,4.4rem);
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 clamp(1.2rem,4vw,3rem);
+    background:linear-gradient(180deg,transparent,rgba(252,247,244,.92) 40%);
+    z-index:20;
+  }
+  .nav-btns{display:flex;gap:.6rem}
+  .nav-btns button{
+    width:clamp(2.3rem,3.4vw,2.9rem);height:clamp(2.3rem,3.4vw,2.9rem);
+    border-radius:50%;border:1px solid var(--blush-deep);background:var(--paper);
+    color:var(--wine);font-size:1.1rem;cursor:pointer;display:grid;place-items:center;
+    transition:background .2s,border-color .2s,transform .15s,opacity .2s;
+  }
+  .nav-btns button:hover{background:var(--blush);border-color:var(--rose)}
+  .nav-btns button:active{transform:scale(.92)}
+  .nav-btns button:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+  .nav-btns button[disabled]{opacity:.32;cursor:default}
+
+  .progress{display:flex;align-items:center;gap:clamp(.7rem,1.6vw,1.2rem)}
+  .dots{display:flex;gap:.45rem}
+  .dots button{width:8px;height:8px;border-radius:50%;border:none;background:var(--blush-deep);cursor:pointer;padding:0;transition:background .2s,transform .2s}
+  .dots button.on{background:var(--rose);transform:scale(1.35)}
+  .dots button:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+  .counter{font-family:var(--mono);font-size:.8rem;letter-spacing:.12em;color:var(--wine)}
+  .counter b{color:var(--rose)}
+
+  .hint{
+    position:fixed;top:clamp(1.2rem,3vw,2rem);right:clamp(1.2rem,4vw,3rem);
+    font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--wine-soft);z-index:20;opacity:.75;transition:opacity .5s;
+  }
+
+  /* ---- part two: building blocks ---- */
+  .stack{display:flex;flex-direction:column;gap:clamp(.7rem,1.4vw,1.1rem);margin-top:clamp(1.6rem,3vw,2.4rem);max-width:840px}
+  .tier{display:flex;align-items:baseline;gap:clamp(.8rem,2vw,1.5rem);background:var(--paper);border:1px solid var(--blush-deep);border-radius:14px;padding:clamp(.95rem,1.7vw,1.4rem) clamp(1.1rem,2.2vw,1.7rem);position:relative;flex-wrap:wrap}
+  .tier::before{content:"";position:absolute;left:0;top:0;height:100%;width:4px;border-radius:14px 0 0 14px;background:var(--rose)}
+  .tier.kit{background:linear-gradient(90deg,var(--blush),#fff);border-color:var(--rose);box-shadow:0 16px 40px -26px rgba(110,39,66,.5)}
+  .tier .tname{font-family:var(--display);font-weight:600;font-size:clamp(1.2rem,2.4vw,1.85rem);color:var(--wine);min-width:5.2em}
+  .tier .trole{font-family:var(--mono);font-size:.64rem;text-transform:uppercase;letter-spacing:.16em;color:var(--rose);min-width:7em}
+  .tier .tdesc{font-size:clamp(.86rem,1.3vw,1.06rem);line-height:1.38;color:var(--ink);flex:1;min-width:14ch}
+
+  .steps{margin-top:clamp(1.2rem,2.2vw,1.8rem);counter-reset:step;display:flex;flex-direction:column;gap:.6rem;max-width:56ch}
+  .steps li{list-style:none;display:flex;gap:.85rem;align-items:baseline;font-size:clamp(.95rem,1.45vw,1.18rem);line-height:1.4}
+  .steps li::before{counter-increment:step;content:counter(step);font-family:var(--mono);font-size:.78rem;color:#fff;background:var(--rose);min-width:1.7em;height:1.7em;border-radius:50%;display:inline-grid;place-items:center;flex:none}
+
+  .task{margin-top:clamp(1.3rem,2.6vw,2.1rem);background:var(--paper);border:1px solid var(--rose);border-radius:16px;padding:clamp(1.2rem,2.4vw,2rem);max-width:780px;box-shadow:0 18px 44px -28px rgba(110,39,66,.45)}
+  .task .tasklbl{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--rose);margin-bottom:.85rem}
+  .task .do{font-family:var(--display);font-weight:600;font-size:clamp(1.25rem,2.6vw,1.95rem);color:var(--wine);line-height:1.12;margin-bottom:.7rem}
+  .task .detail{font-size:clamp(.95rem,1.5vw,1.18rem);line-height:1.45;color:var(--ink)}
+  .task code{font-family:var(--mono);background:var(--blush);padding:.1em .4em;border-radius:5px;font-size:.9em;color:var(--wine)}
+  .task .check{margin-top:1rem;padding-top:.9rem;border-top:1px dashed var(--blush-deep);font-size:clamp(.9rem,1.35vw,1.08rem);line-height:1.42;color:var(--wine-soft)}
+  .task .check b{color:var(--rose);font-weight:600}
+
+  /* ---- responsive ---- */
+  @media (max-width:880px){
+    .fw-layout{grid-template-columns:1fr;gap:1.4rem}
+    .compare{grid-template-columns:1fr}
+    .grid4{grid-template-columns:1fr 1fr}
+    .ladder{gap:.5rem}
+    .rung .when{display:none}
+    .source{position:static;margin-top:1.6rem}
+  }
+  @media (max-width:560px){
+    .grid4{grid-template-columns:1fr}
+    .slide{padding:2.2rem 1.4rem 5rem}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .track{transition:none}
+    .slide.is-active .letter-row{transition:none}
+    .letter-row{opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="hint" id="hint">← / → to navigate</div>
+
+<div class="deck">
+  <div class="track" id="track">
+
+    <!-- 1 · TITLE -->
+    <section class="slide title-slide">
+      <div class="slide-inner">
+        <div class="kicker">AI Workshop · For Women Entrepreneurs</div>
+        <h1>Prompting<br>with Intention</h1>
+        <p class="sub">The same AI gives a stranger a vague answer and gives you exactly what you need. The difference is how you ask.</p>
+        <div class="seal"><span></span>Part One — The Craft of the Prompt</div>
+      </div>
+    </section>
+
+    <!-- 2 · REVIEW: precise prompts -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Warm-up · The one rule</div>
+        <h2>Vague in, vague out.</h2>
+        <p class="lede">Treat Claude like a brilliant new hire on day one: it has zero context on your business. <strong>The clearer and more specific you are, the better it performs.</strong></p>
+        <div class="compare">
+          <div class="card vague">
+            <span class="tag">⟶ Vague</span>
+            <p class="quote">"Write me a social post about my candles."</p>
+          </div>
+          <div class="card sharp">
+            <span class="tag">⟶ Specific</span>
+            <p class="quote">"Write a warm, no-hype Instagram caption for my hand-poured soy candles, aimed at first-time buyers, under 60 words, ending with 'shop the spring set.'"</p>
+          </div>
+        </div>
+      </div>
+      <p class="source">Source: <b>Anthropic</b> — "provide clear, explicit instructions with all the necessary detail," in <a href="https://www.anthropic.com/news/prompt-engineering-for-business-performance" target="_blank" rel="noopener">Prompt engineering for business performance</a>.</p>
+    </section>
+
+    <!-- 3 · WHY FRAMEWORKS -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Why bother · Structure</div>
+        <h2>A framework is a recipe<br>for a good prompt.</h2>
+        <p class="lede">You already know precise is better. A framework just makes precise <strong>repeatable</strong> — so you stop reinventing the prompt every time. It buys you two things:</p>
+        <div class="compare">
+          <div class="card sharp">
+            <span class="tag">⟶ Speed</span>
+            <p>Once it's internalized, a strong prompt takes ~30 seconds instead of 5 minutes of staring at the box.</p>
+          </div>
+          <div class="card sharp">
+            <span class="tag">⟶ A quality floor</span>
+            <p>Even a quick prompt built on a framework hits the minimum context, specificity, and structure to get a usable answer.</p>
+          </div>
+        </div>
+      </div>
+      <p class="source">Source: <b>SurePrompts</b> — <a href="https://sureprompts.com/blog/ai-prompt-frameworks" target="_blank" rel="noopener">The Best AI Prompt Frameworks (2026)</a>.</p>
+    </section>
+
+    <!-- 4 · OVERVIEW -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">The toolkit · Four you'll actually use</div>
+        <h2>Four frameworks, four jobs.</h2>
+        <p class="lede">From a quick one-liner to a full launch plan — pick the one that fits the size of the task.</p>
+        <div class="grid4">
+          <div class="fw-card">
+            <span class="num">01</span>
+            <span class="ac">RTF</span>
+            <span class="full">Role · Task · Format</span>
+            <span class="job">Quick, well-defined tasks. Your everyday default.</span>
+          </div>
+          <div class="fw-card">
+            <span class="num">02</span>
+            <span class="ac">CARE</span>
+            <span class="full">Context · Action · Result · Example</span>
+            <span class="job">Content that sounds like you — tone and style matter.</span>
+          </div>
+          <div class="fw-card">
+            <span class="num">03</span>
+            <span class="ac">BAB</span>
+            <span class="full">Before · After · Bridge</span>
+            <span class="job">Sales &amp; promo copy that moves people to buy.</span>
+          </div>
+          <div class="fw-card">
+            <span class="num">04</span>
+            <span class="ac">RISEN</span>
+            <span class="full">Role · Instructions · Steps · End&nbsp;goal · Narrowing</span>
+            <span class="job">Big projects — and your operations agents.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 · RTF -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Framework 01 · The quick one</div>
+        <div class="fw-layout">
+          <div>
+            <div class="fw-head">
+              <h2><span class="ac-big">RTF</span></h2>
+              <span class="best"><b>Best for:</b> quick, well-defined tasks — the fastest framework to reach for.</span>
+            </div>
+            <div class="example">
+              <div class="lbl">Template in action</div>
+              <p><b>Role:</b> You're my email copywriter.<br><b>Task:</b> Write a subject line + 3-sentence email for my 20%-off spring sale (hand-poured candles, runs Mar 15–22).<br><b>Format:</b> Give me 5 subject-line options, then the email under 75 words.</p>
+            </div>
+          </div>
+          <div class="letters">
+            <div class="letter-row"><span class="lt">R</span><span class="def"><b>Role</b><span>Who Claude should be — "an email copywriter," "a brand strategist."</span></span></div>
+            <div class="letter-row"><span class="lt">T</span><span class="def"><b>Task</b><span>Exactly what to do, in one specific, actionable request.</span></span></div>
+            <div class="letter-row"><span class="lt">F</span><span class="def"><b>Format</b><span>The shape of the output — a list, a table, word count, tone.</span></span></div>
+          </div>
+        </div>
+      </div>
+      <p class="source">Source: <b>SurePrompts</b> — <a href="https://sureprompts.com/blog/ai-prompt-frameworks" target="_blank" rel="noopener">RTF is ideal for routine content and quick one-off tasks</a>.</p>
+    </section>
+
+    <!-- 6 · CARE -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Framework 02 · The storyteller</div>
+        <div class="fw-layout">
+          <div>
+            <div class="fw-head">
+              <h2><span class="ac-big">CARE</span></h2>
+              <span class="best"><b>Best for:</b> case studies, testimonials, campaigns — when it has to sound like you.</span>
+            </div>
+            <div class="example">
+              <div class="lbl">Template in action</div>
+              <p><b>Context:</b> I run a Pilates studio; I want a client success story for my site.<br><b>Action:</b> Write a short case study.<br><b>Result:</b> A warm, 150-word story that builds trust with first-timers.<br><b>Example:</b> [paste a testimonial in the voice you love].</p>
+            </div>
+          </div>
+          <div class="letters">
+            <div class="letter-row"><span class="lt">C</span><span class="def"><b>Context</b><span>The background and situation Claude is writing into.</span></span></div>
+            <div class="letter-row"><span class="lt">A</span><span class="def"><b>Action</b><span>The specific thing to produce.</span></span></div>
+            <div class="letter-row"><span class="lt">R</span><span class="def"><b>Result</b><span>The outcome you want — length, feel, what it should achieve.</span></span></div>
+            <div class="letter-row"><span class="lt">E</span><span class="def"><b>Example</b><span>A sample that locks in the style and cuts the vagueness.</span></span></div>
+          </div>
+        </div>
+      </div>
+      <p class="source">Source: <b>Virtasant</b> — <a href="https://www.virtasant.com/ai-today/from-ideas-to-action-5-prompt-frameworks-for-business-leaders" target="_blank" rel="noopener">CARE is great for case studies, project reviews, and situations</a>.</p>
+    </section>
+
+    <!-- 7 · BAB -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Framework 03 · The persuader</div>
+        <div class="fw-layout">
+          <div>
+            <div class="fw-head">
+              <h2><span class="ac-big">BAB</span></h2>
+              <span class="best"><b>Best for:</b> ads, promos, sales pages, launch emails — copy that moves people to buy.</span>
+            </div>
+            <div class="example">
+              <div class="lbl">Template in action</div>
+              <p><b>Before:</b> My customers feel scattered — sticky notes everywhere, missed client follow-ups.<br><b>After:</b> They run their whole week from one calm planner and never drop a client again.<br><b>Bridge:</b> Write an Instagram ad for my "Weekly Reset" planner that connects the two, ending with "grab yours."</p>
+            </div>
+          </div>
+          <div class="letters">
+            <div class="letter-row"><span class="lt">B</span><span class="def"><b>Before</b><span>The customer's pain right now — the problem they feel.</span></span></div>
+            <div class="letter-row"><span class="lt">A</span><span class="def"><b>After</b><span>The happier place they want to be once it's solved.</span></span></div>
+            <div class="letter-row"><span class="lt">B</span><span class="def"><b>Bridge</b><span>Your product or service as the path from one to the other.</span></span></div>
+          </div>
+        </div>
+      </div>
+      <p class="source">Source: <b>ChceDoInternetu</b> — <a href="https://chcedointernetu.pl/en/blog/ai-prompting-frameworks" target="_blank" rel="noopener">BAB is the most powerful framework for persuasive writing — marketing copy, sales emails, landing pages</a>.</p>
+    </section>
+
+    <!-- 8 · RISEN -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Framework 04 · The heavy lifter</div>
+        <div class="fw-layout">
+          <div>
+            <div class="fw-head">
+              <h2><span class="ac-big">RISEN</span></h2>
+              <span class="best"><b>Best for:</b> complex, multi-step work where the steps — and the limits — matter.</span>
+            </div>
+            <div class="example">
+              <div class="lbl">Template in action</div>
+              <p><b>Role:</b> Act as a launch strategist.<br><b>Instructions:</b> Build my 4-week launch plan for a new coaching program.<br><b>Steps:</b> 1) define the offer · 2) content calendar · 3) email sequence · 4) launch-week schedule.<br><b>End goal:</b> 25 enrolments.<br><b>Narrowing:</b> Instagram + email only · $0 ads · keep my warm, no-hype voice.</p>
+            </div>
+            <p class="agent-note">↳ Same skeleton powers your <b>operations agents</b> in hour two — Role, Steps &amp; Narrowing are exactly what an agent's standing instructions need.</p>
+          </div>
+          <div class="letters">
+            <div class="letter-row"><span class="lt">R</span><span class="def"><b>Role</b><span>The persona and expertise to adopt.</span></span></div>
+            <div class="letter-row"><span class="lt">I</span><span class="def"><b>Instructions</b><span>The task — what you want done.</span></span></div>
+            <div class="letter-row"><span class="lt">S</span><span class="def"><b>Steps</b><span>The exact sequence to follow.</span></span></div>
+            <div class="letter-row"><span class="lt">E</span><span class="def"><b>End goal</b><span>What success actually looks like.</span></span></div>
+            <div class="letter-row"><span class="lt">N</span><span class="def"><b>Narrowing</b><span>The boundaries — what to avoid or leave out.</span></span></div>
+          </div>
+        </div>
+      </div>
+      <p class="source">Sources: <b>AiPromptsX</b> — <a href="https://aipromptsx.com/prompts/frameworks/risen" target="_blank" rel="noopener">RISEN (by Kyle Balmer) is built for complex, multi-step tasks</a>; on agents, see <a href="https://dev.to/gunnargrosch/writing-system-prompts-that-actually-work-the-risen-framework-for-ai-agents-4p94" target="_blank" rel="noopener">The RISEN Framework for AI Agents (dev.to)</a>.</p>
+    </section>
+
+    <!-- 9 · WHEN TO USE EACH -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">The decision · Match it to the task</div>
+        <h2>When to use each.</h2>
+        <p class="lede">Start with <strong>RTF</strong> for most things. Climb the ladder only when the task gets bigger.</p>
+        <div class="ladder">
+          <div class="rung">
+            <span class="ac">RTF</span>
+            <span class="when">A caption, a quick email, a summary.</span>
+            <span class="lvl">Quick</span>
+          </div>
+          <div class="rung">
+            <span class="ac">CARE</span>
+            <span class="when">When it has to sound like you — a story, a campaign.</span>
+            <span class="lvl">Style-driven</span>
+          </div>
+          <div class="rung">
+            <span class="ac">BAB</span>
+            <span class="when">Sales &amp; promo copy that moves people to buy.</span>
+            <span class="lvl">Persuasion</span>
+          </div>
+          <div class="rung">
+            <span class="ac">RISEN</span>
+            <span class="when">A launch plan, an SOP, your operations agents.</span>
+            <span class="lvl">Complex build</span>
+          </div>
+        </div>
+        <div class="ladder-axis"><span>← Simple &amp; fast</span><span>Detailed &amp; structured →</span></div>
+      </div>
+      <p class="source">Source: <b>SurePrompts</b> — frameworks ordered <a href="https://sureprompts.com/blog/ai-prompt-frameworks" target="_blank" rel="noopener">simplest to most complex; start with RTF, reach for the bigger ones when the task demands it</a>.</p>
+    </section>
+
+    <!-- 10 · RECAP -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Take it home · Your four</div>
+        <h2>Four tools. One habit.</h2>
+        <ul class="recap-list">
+          <li><span class="k">RTF</span><span>Quick everyday asks.</span></li>
+          <li><span class="k">CARE</span><span>When it has to sound like you.</span></li>
+          <li><span class="k">BAB</span><span>Sales &amp; promo copy that sells.</span></li>
+          <li><span class="k">RISEN</span><span>Big projects &amp; your operations agents.</span></li>
+        </ul>
+        <p class="turn">Your turn — rewrite one prompt you use all the time using the framework that fits.</p>
+      </div>
+    </section>
+
+    <!-- 11 · FEATURES: MODELS · EFFORT · SEARCH · RESEARCH -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Before we build · A few more dials</div>
+        <h2>Choose your model. Choose your effort.</h2>
+        <p class="lede">Two quick dials decide how smart, how fast, and how much of your usage each answer costs — plus two built-in tools for live info.</p>
+        <div class="grid4">
+          <div class="fw-card">
+            <span class="ac">Model</span>
+            <span class="job"><b>Haiku</b> fast &amp; light · <b>Sonnet</b> balanced · <b>Opus</b> heaviest reasoning. Pick the smallest that does the job.</span>
+          </div>
+          <div class="fw-card">
+            <span class="ac">Effort</span>
+            <span class="job">How hard it thinks. <b>Low/Med</b> faster, fewer tokens · <b>High</b> is default · <b>Max</b> only for hard, long tasks.</span>
+          </div>
+          <div class="fw-card">
+            <span class="ac">Web Search</span>
+            <span class="job">Quick, current info mid-chat — a lookup or two when you need today's facts.</span>
+          </div>
+          <div class="fw-card">
+            <span class="ac">Research</span>
+            <span class="job">A multi-step deep dive across many sources, returned as a cited report.</span>
+          </div>
+        </div>
+        <p class="agent-note">↳ <b>Today:</b> we'll run on <b>Haiku</b> at low–medium effort — snappy, and it saves your usage for the build hour. Step up to Sonnet or Opus when the task gets heavy.</p>
+      </div>
+      <p class="source">Source: <b>Anthropic</b> — <a href="https://www.anthropic.com/news/claude-opus-4-8" target="_blank" rel="noopener">a control beside the model selector lets you choose Claude's effort; higher thinks more deeply, lower is faster and uses limits more slowly — available on all plans</a>.</p>
+    </section>
+
+    <!-- 12 · PART TWO DIVIDER -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Part Two · Beyond the prompt</div>
+        <h2>Connect. Teach. Reuse.</h2>
+        <p class="lede">Prompting is how you <em class="brand">talk</em> to Claude. These three building blocks give it hands, memory, and a whole toolkit — each one stacks on the last.</p>
+        <div class="stack">
+          <div class="tier"><span class="tname">Connector</span><span class="trole">Access</span><span class="tdesc">Plug Claude into the tools you already use — email, calendar, files.</span></div>
+          <div class="tier"><span class="tname">Skill</span><span class="trole">Know-how</span><span class="tdesc">Teach it to do one job your way, every time — and run it by name.</span></div>
+          <div class="tier kit"><span class="tname">Plugin</span><span class="trole">The kit</span><span class="tdesc">A bundle of skills + connectors, pre-assembled by Anthropic for your job.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13 · CONNECTORS -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Building block 01 · Connectors</div>
+        <h2>Give Claude access.</h2>
+        <p class="lede">A connector is a one-click bridge to a tool you already use, toggled on per chat. Suddenly Claude can read your inbox, your calendar, your files.</p>
+        <div class="compare">
+          <div class="card vague">
+            <span class="tag">⟶ Before</span>
+            <p class="quote">"What's important in my inbox today?" → "I can't see your inbox."</p>
+          </div>
+          <div class="card sharp">
+            <span class="tag">⟶ Connected</span>
+            <p class="quote">Same question → a real triage of your actual emails, ranked by what needs you first.</p>
+          </div>
+        </div>
+        <p class="agent-note">↳ Claude only sees what you <b>authorize</b>, and never sends, posts, or pays without showing you first.</p>
+      </div>
+      <p class="source">Source: <b>Claude Help Center</b> — <a href="https://support.claude.com/en/articles/13837440-use-plugins-in-claude" target="_blank" rel="noopener">Claude connects to services like Google Drive, Gmail, Slack, DocuSign, and many more</a>.</p>
+    </section>
+
+    <!-- 14 · CONNECTORS EXERCISE -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Your turn · ~2 minutes</div>
+        <h2>Connect &amp; confirm.</h2>
+        <div class="task">
+          <div class="tasklbl">✦ Do this now</div>
+          <div class="do">Add your Gmail or Calendar connector.</div>
+          <p class="detail">Then ask Claude one thing only it could answer — like <code>"What's on my calendar this week?"</code></p>
+          <p class="check"><b>Check:</b> did Claude pull up something only <i>you</i> can see? Then it's connected. If it says it can't, you just found the toggle.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15 · SKILLS -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Building block 02 · Skills</div>
+        <h2>Teach it once.</h2>
+        <p class="lede">A skill is a small instruction file that teaches Claude <strong>how</strong> to do one job your way. Write it once; it runs every time — by name with <em class="brand">/skill</em>, or automatically when the task matches.</p>
+        <div class="compare">
+          <div class="card sharp">
+            <span class="tag">⟶ Connector</span>
+            <p>Gives Claude <b>access</b> — what it can reach.</p>
+          </div>
+          <div class="card sharp">
+            <span class="tag">⟶ Skill</span>
+            <p>Gives Claude <b>know-how</b> — how to do the job, so you stop re-explaining it.</p>
+          </div>
+        </div>
+      </div>
+      <p class="source">Source: <b>Product Talk</b> — <a href="https://www.producttalk.org/how-to-use-claude-code-features/" target="_blank" rel="noopener">Claude on the web (Claude.ai) and Claude Desktop also support skills — define once, use everywhere</a>.</p>
+    </section>
+
+    <!-- 16 · SKILLS — MORNING ROUTINE -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Skills · Build your own</div>
+        <h2>Your morning routine, on autopilot.</h2>
+        <p class="lede">Everybody has a morning. Let's make a skill that runs yours — using the calendar and email you just connected.</p>
+        <ol class="steps">
+          <li>Check my calendar and email for today.</li>
+          <li>Flag the one thing I really need to handle.</li>
+          <li>Give me a 5-line summary of both, in one place.</li>
+          <li>Add one line to start the day right.</li>
+          <li>Pull a headline or two I'd want to know about.</li>
+        </ol>
+        <p class="agent-note">↳ Build it: ask Claude to <b>"create a skill called morning-routine"</b> → install it under Customize → Skills → run it with <b>/morning-routine</b>. Schedule it, and it's waiting when you wake up.</p>
+      </div>
+      <p class="source">Source: <b>How to AI</b> — <a href="https://ruben.substack.com/p/claude-skills" target="_blank" rel="noopener">create the skill, install it under Customize → Skills, then "Try in chat"</a>.</p>
+    </section>
+
+    <!-- 17 · SKILLS EXERCISE -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Your turn · ~4 minutes</div>
+        <h2>Make it yours.</h2>
+        <div class="task">
+          <div class="tasklbl">✦ Build &amp; run</div>
+          <div class="do">Create your own <code>/morning-routine</code>.</div>
+          <p class="detail">Change the steps to fit your life — swap the quote for a to-do count, add your industry's news, whatever you want. Then run it and see what yours pulls up.</p>
+          <p class="check"><b>Check:</b> did Claude run your whole routine from one command, using your real calendar and inbox? <b>You just built a skill.</b> Compare with the person next to you.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 18 · PLUGINS -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Building block 03 · Plugins</div>
+        <h2>The whole kit, in one click.</h2>
+        <p class="lede">You just built one skill by hand. A <strong>plugin</strong> hands you a whole shelf of them — skills <em>and</em> connectors, pre-assembled by Anthropic for your kind of work. Open <em class="brand">Customize → Plugins → Browse → Install</em>.</p>
+        <div class="grid4">
+          <div class="fw-card"><span class="ac">Marketing</span><span class="job">Content drafting, campaign planning, launch management.</span></div>
+          <div class="fw-card"><span class="ac">Small Business</span><span class="job">Finance, sales, ops, HR — 15 ready-to-run skills.</span></div>
+          <div class="fw-card"><span class="ac">Sales</span><span class="job">Lead research, deal prep, pipeline tracking.</span></div>
+          <div class="fw-card"><span class="ac">Finance</span><span class="job">Analysis, modeling, KPI tracking.</span></div>
+        </div>
+      </div>
+      <p class="source">Source: <b>Claude Help Center</b> — <a href="https://support.claude.com/en/articles/13837440-use-plugins-in-claude" target="_blank" rel="noopener">a growing library of plugins for sales, finance, legal, marketing, HR, design, operations and more, each pre-configured with the right skills and connectors</a>.</p>
+    </section>
+
+    <!-- 19 · PLUGINS EXERCISE + SHOWCASE -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Your turn · then the payoff</div>
+        <h2>Install the kit.</h2>
+        <div class="task">
+          <div class="tasklbl">✦ One click, one job</div>
+          <div class="do">Install the <code>Marketing</code> plugin, then run one of its skills.</div>
+          <p class="detail">Draft a campaign or a launch plan — using a skill you didn't have to write.</p>
+          <p class="check"><b>Check:</b> name one skill it just handed you that you'd otherwise have had to build yourself.</p>
+        </div>
+        <p class="agent-note">★ <b>Claude for Small Business</b> — a plugin built for exactly you: 15 ready-to-run skills across finance, sales, marketing &amp; ops. (Runs in Claude Cowork, the desktop app.) Next hour, we turn one of these into your own branded app.</p>
+      </div>
+      <p class="source">Source: <b>Anthropic</b> — <a href="https://www.anthropic.com/news/claude-for-small-business" target="_blank" rel="noopener">Claude for Small Business ships 15 ready-to-run workflows and 15 skills across finance, operations, sales, marketing, HR, and customer service</a>.</p>
+    </section>
+
+  </div>
+</div>
+
+<!-- chrome -->
+<div class="chrome">
+  <div class="nav-btns">
+    <button id="prev" aria-label="Previous slide">‹</button>
+    <button id="next" aria-label="Next slide">›</button>
+  </div>
+  <div class="progress">
+    <div class="dots" id="dots"></div>
+    <div class="counter"><b id="cur">01</b> / <span id="total">10</span></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const track = document.getElementById('track');
+  const slides = Array.from(track.children);
+  const prev = document.getElementById('prev');
+  const next = document.getElementById('next');
+  const cur = document.getElementById('cur');
+  const dotsWrap = document.getElementById('dots');
+  const hint = document.getElementById('hint');
+  let i = 0;
+  const n = slides.length;
+  document.getElementById('total').textContent = String(n).padStart(2,'0');
+
+  // build dots
+  slides.forEach((_, idx)=>{
+    const b = document.createElement('button');
+    b.setAttribute('aria-label','Go to slide '+(idx+1));
+    b.addEventListener('click', ()=>go(idx));
+    dotsWrap.appendChild(b);
+  });
+  const dots = Array.from(dotsWrap.children);
+
+  function render(){
+    track.style.transform = 'translateX(' + (-i*100) + '%)';
+    cur.textContent = String(i+1).padStart(2,'0');
+    slides.forEach((s,idx)=>s.classList.toggle('is-active', idx===i));
+    dots.forEach((d,idx)=>d.classList.toggle('on', idx===i));
+    prev.disabled = i===0;
+    next.disabled = i===n-1;
+  }
+  function go(idx){
+    i = Math.max(0, Math.min(n-1, idx));
+    render();
+  }
+
+  prev.addEventListener('click', ()=>go(i-1));
+  next.addEventListener('click', ()=>go(i+1));
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='ArrowRight' || e.key==='PageDown'){ go(i+1); }
+    else if(e.key==='ArrowLeft' || e.key==='PageUp'){ go(i-1); }
+    else if(e.key==='Home'){ go(0); }
+    else if(e.key==='End'){ go(n-1); }
+    if(['ArrowRight','ArrowLeft','Home','End','PageUp','PageDown'].includes(e.key)){
+      hint.style.opacity = '0';
+    }
+  });
+
+  // touch swipe
+  let x0=null;
+  track.addEventListener('touchstart', e=>{ x0 = e.touches[0].clientX; }, {passive:true});
+  track.addEventListener('touchend', e=>{
+    if(x0===null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if(Math.abs(dx) > 45){ dx<0 ? go(i+1) : go(i-1); }
+    x0=null;
+  }, {passive:true});
+
+  // fade the hint away on its own
+  setTimeout(()=>{ hint.style.opacity = '0'; }, 5000);
+
+  render();
+})();
+</script>
+</body>
+</html>
