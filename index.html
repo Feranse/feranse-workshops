@@ -216,25 +216,42 @@
   .source a:hover{color:var(--rose)}
   .source b{color:var(--rose);font-weight:500}
 
+  /* slides 8 (RISEN) and 11 (features) pack an extra agent-note onto an
+     already-tall block (5-field example / 4-card grid), so the
+     absolutely-positioned footnote can run into that content; keep it in
+     normal flow here so it always clears, at any screen size. */
+  #slide-risen{padding-bottom:clamp(2.4rem,6vw,6.5rem)}
+  #slide-risen .source{position:static;margin-top:clamp(1.3rem,2.8vw,2.2rem)}
+
+  /* slide 11 needed the same in-flow fix, but its 4-card grid + agent-note
+     pushed total height past the viewport; tighten its spacing so the
+     whole stack fits without overflowing. */
+  #slide-features{padding-top:clamp(1.8rem,4vw,3.2rem);padding-bottom:clamp(1.6rem,3.2vw,2.6rem)}
+  #slide-features .eyebrow{margin-bottom:clamp(.6rem,1.3vw,1rem)}
+  #slide-features .lede{margin-top:clamp(.6rem,1.2vw,1rem)}
+  #slide-features .grid4{margin-top:clamp(1.1rem,2vw,1.6rem);gap:clamp(.6rem,1.2vw,1rem)}
+  #slide-features .fw-card{padding:clamp(.75rem,1.3vw,1.1rem);gap:.35rem}
+  #slide-features .agent-note{margin-top:.6rem;padding:.45rem .75rem}
+  #slide-features .source{position:static;margin-top:clamp(.7rem,1.5vw,1.2rem)}
+
   /* ---- chrome: nav bar ---- */
   .chrome{
     position:fixed;left:0;right:0;bottom:0;height:clamp(3.4rem,6vh,4.4rem);
-    display:flex;align-items:center;justify-content:space-between;
+    display:flex;align-items:center;justify-content:center;
     padding:0 clamp(1.2rem,4vw,3rem);
     background:linear-gradient(180deg,transparent,rgba(252,247,244,.92) 40%);
     z-index:20;
   }
-  .nav-btns{display:flex;gap:.6rem}
-  .nav-btns button{
+  .nav-btn{
     width:clamp(2.3rem,3.4vw,2.9rem);height:clamp(2.3rem,3.4vw,2.9rem);
     border-radius:50%;border:1px solid var(--blush-deep);background:var(--paper);
     color:var(--wine);font-size:1.1rem;cursor:pointer;display:grid;place-items:center;
     transition:background .2s,border-color .2s,transform .15s,opacity .2s;
   }
-  .nav-btns button:hover{background:var(--blush);border-color:var(--rose)}
-  .nav-btns button:active{transform:scale(.92)}
-  .nav-btns button:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
-  .nav-btns button[disabled]{opacity:.32;cursor:default}
+  .nav-btn:hover{background:var(--blush);border-color:var(--rose)}
+  .nav-btn:active{transform:scale(.92)}
+  .nav-btn:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+  .nav-btn[disabled]{opacity:.32;cursor:default}
 
   .progress{display:flex;align-items:center;gap:clamp(.7rem,1.6vw,1.2rem)}
   .dots{display:flex;gap:.45rem}
@@ -461,7 +478,7 @@
     </section>
 
     <!-- 8 · RISEN -->
-    <section class="slide">
+    <section class="slide" id="slide-risen">
       <div class="slide-inner">
         <div class="eyebrow">Framework 04 · The heavy lifter</div>
         <div class="fw-layout">
@@ -537,7 +554,7 @@
     </section>
 
     <!-- 11 · FEATURES: MODELS · EFFORT · SEARCH · RESEARCH -->
-    <section class="slide">
+    <section class="slide" id="slide-features">
       <div class="slide-inner">
         <div class="eyebrow">Before we build · A few more dials</div>
         <h2>Choose your model. Choose your effort.</h2>
@@ -703,13 +720,11 @@
 
 <!-- chrome -->
 <div class="chrome">
-  <div class="nav-btns">
-    <button id="prev" aria-label="Previous slide">‹</button>
-    <button id="next" aria-label="Next slide">›</button>
-  </div>
   <div class="progress">
+    <button id="prev" class="nav-btn" aria-label="Previous slide">‹</button>
     <div class="dots" id="dots"></div>
     <div class="counter"><b id="cur">01</b> / <span id="total">10</span></div>
+    <button id="next" class="nav-btn" aria-label="Next slide">›</button>
   </div>
 </div>
 

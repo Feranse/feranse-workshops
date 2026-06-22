@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(nohup python3 -m http.server 42069 --bind 0.0.0.0)",
+      "Bash(disown)",
+      "Bash(curl -sI http://localhost:42069/index.html)",
+      "Bash(curl -s http://localhost:42069/index.html)"
+    ]
+  }
+}
