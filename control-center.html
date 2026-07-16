@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>arcAId · Business Control Center</title>
+<style>
+  :root{
+    color-scheme: light;
+    /* arcAId brand — indigo + lilac logo */
+    --cream:#F7F6FE;        /* page background (indigo white) */
+    --blush:#EFEBFC;        /* soft indigo surface */
+    --blush-deep:#DFD9F6;   /* borders */
+    --rose:#9B5FD6;         /* lilac accent */
+    --rose-soft:#C79BE6;
+    --wine:#4F2FE3;         /* indigo (headings / primary) */
+    --wine-soft:#6E63A0;    /* muted indigo-gray */
+    --ink:#1F1546;          /* deep indigo body text */
+    --brass:#6D3BE6;        /* violet accent ticks */
+    --paper:#FFFFFF;
+    --ok:#4f9d7c;
+    --grad:linear-gradient(135deg,#5A34E6,#9B5FD6);  /* the logo gradient */
+    --display:'Fraunces','Georgia','Times New Roman',serif;
+    --body:'Hanken Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:var(--body);
+    color:var(--ink);
+    background:
+      radial-gradient(120% 80% at 8% 4%, rgba(203,58,157,.08), transparent 55%),
+      radial-gradient(120% 120% at 100% 100%, rgba(124,58,237,.05), transparent 50%),
+      var(--cream);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    font-size:15px;
+  }
+
+  /* ---- top bar ---- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:1.1rem clamp(1.2rem,3vw,2.4rem);
+    border-bottom:1px solid var(--blush-deep);
+    position:sticky;top:0;z-index:30;
+    background:rgba(250,248,254,.85);backdrop-filter:blur(8px);
+  }
+  .brand{display:flex;align-items:center;gap:.85rem}
+  .brand .mark{display:flex;align-items:center}
+  .brand .mark svg{width:44px;height:44px;display:block}
+  .brand .name{font-family:var(--display);font-weight:600;font-size:1.32rem;color:var(--wine);line-height:1}
+  .brand .tag{font-family:var(--mono);font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;color:var(--wine-soft);margin-top:.28rem}
+  .add-top{
+    font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
+    background:var(--wine);color:var(--cream);border:none;border-radius:999px;
+    padding:.6rem 1.1rem;cursor:pointer;transition:transform .15s,background .2s;
+  }
+  .add-top:hover{background:var(--rose)}
+  .add-top:active{transform:scale(.95)}
+  .topbar-right{display:flex;align-items:center;gap:.7rem}
+  .bridge-pill{font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;
+    padding:.4rem .65rem;border-radius:999px;border:1px solid var(--blush-deep);color:var(--wine-soft);
+    display:inline-flex;align-items:center;gap:.4rem;cursor:pointer;transition:border-color .2s,color .2s}
+  .bridge-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+  .bridge-pill.on{color:var(--ok);border-color:#bfe0d0}
+  .bridge-pill.off{color:var(--rose)}
+  .bridge-pill.off:hover{border-color:var(--rose)}
+
+  /* ---- shell ---- */
+  .shell{display:grid;grid-template-columns:230px 1fr;gap:clamp(1rem,2.5vw,2rem);
+    padding:clamp(1.2rem,2.5vw,2rem) clamp(1.2rem,3vw,2.4rem);max-width:1320px;margin:0 auto}
+
+  /* ---- sidebar ---- */
+  .side{display:flex;flex-direction:column;gap:1.6rem;position:sticky;top:88px;align-self:start}
+  .side .label{font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--brass);margin-bottom:.7rem;padding-left:.2rem}
+  .nav{display:flex;flex-direction:column;gap:.3rem}
+  .nav button{
+    display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;
+    background:transparent;border:1px solid transparent;border-radius:11px;
+    padding:.7rem .8rem;cursor:pointer;font-family:var(--body);font-size:.98rem;color:var(--ink);
+    transition:background .18s,border-color .18s,color .18s;
+  }
+  .nav button .ico{width:1.5rem;text-align:center;font-size:1rem}
+  .nav button .cnt{margin-left:auto;font-family:var(--mono);font-size:.72rem;color:var(--wine-soft);
+    background:var(--blush);border-radius:999px;padding:.05rem .5rem}
+  .nav button:hover{background:var(--paper);border-color:var(--blush-deep)}
+  .nav button.on{background:var(--paper);border-color:var(--rose);color:var(--wine);font-weight:600;box-shadow:0 10px 26px -20px rgba(124,58,237,.5)}
+  .nav button.on .cnt{background:var(--blush-deep);color:var(--wine)}
+
+  .fav-rail{display:flex;flex-direction:column;gap:.4rem}
+  .fav-chip{display:flex;align-items:center;gap:.55rem;font-size:.9rem;color:var(--wine);
+    background:var(--paper);border:1px solid var(--blush-deep);border-radius:10px;padding:.5rem .65rem;cursor:pointer;
+    transition:border-color .18s,transform .15s}
+  .fav-chip:hover{border-color:var(--rose);transform:translateX(2px)}
+  .fav-chip .star{color:var(--brass)}
+  .fav-empty{font-size:.82rem;color:var(--wine-soft);line-height:1.4;padding:.2rem}
+
+  /* ---- main ---- */
+  .main{min-width:0}
+  .sec-head{margin-bottom:1.5rem}
+  .eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.26em;text-transform:uppercase;color:var(--rose);
+    display:flex;align-items:center;gap:.7rem;margin-bottom:.7rem}
+  .eyebrow::before{content:"";width:34px;height:1px;background:var(--brass)}
+  .sec-head h2{font-family:var(--display);font-weight:600;font-size:clamp(1.9rem,4vw,2.7rem);color:var(--wine);line-height:1.02;letter-spacing:-.015em}
+  .sec-head .lede{font-size:1.05rem;line-height:1.5;color:var(--ink);max-width:54ch;margin-top:.6rem}
+
+  /* ---- cards ---- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1.1rem}
+  .card{
+    background:var(--paper);border:1px solid var(--blush-deep);border-radius:16px;
+    padding:1.3rem 1.3rem 1.1rem;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:.55rem;
+    transition:box-shadow .2s,transform .2s,border-color .2s;
+  }
+  .card::before{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:var(--rose)}
+  .card:hover{box-shadow:0 20px 44px -28px rgba(124,58,237,.5);transform:translateY(-2px)}
+  .card.is-fav{border-color:var(--rose)}
+  .card-top{display:flex;align-items:flex-start;gap:.8rem}
+  .mono-badge{width:42px;height:42px;border-radius:12px;flex:none;display:grid;place-items:center;
+    font-family:var(--display);font-weight:600;font-size:1.25rem;color:#fff;
+    background:var(--grad)}
+  .card h3{font-family:var(--display);font-weight:600;font-size:1.18rem;color:var(--wine);line-height:1.1}
+  .card .skill-tag{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--wine-soft);margin-top:.2rem}
+  .star-btn{margin-left:auto;background:none;border:none;cursor:pointer;font-size:1.2rem;line-height:1;color:var(--blush-deep);transition:transform .15s,color .2s;padding:.1rem}
+  .star-btn.on{color:var(--brass)}
+  .star-btn:hover{transform:scale(1.2)}
+  .card .desc{font-size:.92rem;line-height:1.45;color:var(--ink);opacity:.9;flex:1}
+  .card .status{font-family:var(--mono);font-size:.68rem;letter-spacing:.04em;color:var(--wine-soft);min-height:1em;display:flex;align-items:center;gap:.45rem}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--blush-deep);flex:none}
+  .dot.run{background:var(--rose);animation:pulse 1.1s infinite}
+  .dot.done{background:var(--ok)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .card-actions{display:flex;align-items:center;gap:.5rem;margin-top:.4rem}
+  .run-btn{
+    flex:1;font-family:var(--mono);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;
+    background:var(--grad);color:#fff;border:none;border-radius:10px;padding:.7rem;cursor:pointer;
+    transition:filter .2s,transform .15s,box-shadow .2s;
+  }
+  .run-btn:hover{filter:brightness(1.07);box-shadow:0 8px 18px -8px rgba(124,58,237,.6)}
+  .run-btn:active{transform:scale(.97)}
+  .run-btn:disabled{opacity:.55;cursor:default}
+  .icon-btn{background:var(--paper);border:1px solid var(--blush-deep);border-radius:10px;width:38px;height:38px;
+    cursor:pointer;color:var(--wine-soft);font-size:1rem;display:grid;place-items:center;transition:border-color .2s,color .2s}
+  .icon-btn:hover{border-color:var(--rose);color:var(--rose)}
+  .upload-btn{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;
+    background:var(--blush);border:1px solid var(--blush-deep);border-radius:10px;padding:.7rem .8rem;cursor:pointer;
+    color:var(--wine);display:inline-flex;align-items:center;white-space:nowrap;transition:border-color .2s,color .2s,background .2s}
+  .upload-btn:hover{border-color:var(--rose);color:var(--rose);background:var(--paper)}
+  .upload-btn.busy{pointer-events:none;opacity:.92;border-color:var(--rose);color:var(--rose);background:var(--paper)}
+  .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--blush-deep);border-top-color:var(--rose);
+    border-radius:50%;animation:ccspin .65s linear infinite;vertical-align:-1px;margin-right:.3rem}
+  @keyframes ccspin{to{transform:rotate(360deg)}}
+
+  /* add card */
+  .add-card{
+    border:1.5px dashed var(--blush-deep);background:transparent;border-radius:16px;
+    display:grid;place-items:center;min-height:170px;cursor:pointer;color:var(--wine-soft);
+    font-family:var(--mono);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;
+    transition:border-color .2s,color .2s,background .2s;
+  }
+  .add-card:hover{border-color:var(--rose);color:var(--rose);background:rgba(203,58,157,.04)}
+  .add-card .plus{font-size:1.8rem;display:block;text-align:center;margin-bottom:.3rem;font-family:var(--display)}
+
+  /* ---- results zone ---- */
+  .results-wrap{margin-top:2rem}
+  .results-wrap > .eyebrow{margin-bottom:1rem}
+  .result-card{background:var(--paper);border:1px solid var(--blush-deep);border-radius:16px;
+    overflow:hidden;margin-bottom:1.1rem}
+  .result-card .rc-head{display:flex;align-items:center;gap:.6rem;padding:.85rem 1.1rem;
+    border-bottom:1px solid var(--blush);background:linear-gradient(90deg,var(--blush),#fff)}
+  .result-card .rc-head .rc-name{font-family:var(--display);font-weight:600;color:var(--wine);font-size:1.02rem}
+  .result-card .rc-head .rc-when{font-family:var(--mono);font-size:.64rem;letter-spacing:.08em;color:var(--wine-soft);margin-left:auto}
+  .rc-refresh{font-family:var(--mono);font-size:.8rem;line-height:1;color:var(--wine-soft);background:var(--cream);
+    border:1px solid var(--blush-deep);border-radius:8px;padding:.3rem .5rem;cursor:pointer;transition:border-color .2s,color .2s}
+  .rc-refresh:hover{border-color:var(--rose);color:var(--rose)}
+  .run-select{font-family:var(--mono);font-size:.64rem;color:var(--wine);background:var(--paper);
+    border:1px solid var(--blush-deep);border-radius:8px;padding:.28rem .5rem;cursor:pointer;max-width:170px;transition:border-color .2s}
+  .run-select:hover{border-color:var(--rose)}
+  .rc-head .run-select{margin-left:auto}
+  .rc-head .run-select ~ .rc-refresh, .rc-head .run-select ~ .rc-when{margin-left:0}
+  .result-body{padding:1.1rem 1.2rem}
+  .result-empty{color:var(--wine-soft);font-size:.92rem;line-height:1.5;text-align:center;padding:1.4rem .5rem}
+  .result-empty b{color:var(--wine)}
+
+  /* rendered-markdown brief (e.g. Morning Routine) */
+  .md-brief{font-size:.93rem;line-height:1.5;color:var(--ink)}
+  .md-brief h1{font-family:var(--display);font-weight:600;color:var(--wine);font-size:1.3rem;margin:.1rem 0 .9rem;line-height:1.1}
+  .md-brief h2{font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--rose);
+    margin:1.1rem 0 .5rem;display:flex;align-items:center;gap:.55rem}
+  .md-brief h2::before{content:"";width:18px;height:1px;background:var(--brass);flex:none}
+  .md-brief ul{list-style:none;margin:.2rem 0;padding:0;display:flex;flex-direction:column;gap:.45rem}
+  .md-brief li{padding-left:1.05rem;position:relative;line-height:1.4}
+  .md-brief li::before{content:"";position:absolute;left:0;top:.55em;width:5px;height:5px;border-radius:50%;background:var(--rose)}
+  .md-brief strong{color:var(--wine);font-weight:600}
+  .md-brief em{color:var(--wine-soft);font-style:italic}
+  .md-brief blockquote{margin:.55rem 0;padding:.65rem .95rem;border-left:3px solid var(--rose);background:var(--blush);
+    border-radius:0 9px 9px 0;font-family:var(--display);font-style:italic;color:var(--wine);font-size:1.02rem}
+  .md-brief a{color:var(--rose);text-decoration:underline;text-underline-offset:2px}
+  .md-brief hr{border:none;border-top:1px dashed var(--blush-deep);margin:1rem 0}
+  .md-brief p{margin:.45rem 0}
+  .md-brief .md-table{border-collapse:collapse;width:100%;margin:.7rem 0;font-size:.9rem}
+  .md-brief .md-table th,.md-brief .md-table td{border:1px solid var(--blush-deep);padding:.45rem .7rem;text-align:left;vertical-align:top}
+  .md-brief .md-table th{background:var(--blush);color:var(--wine);font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+  .md-brief .md-table td{color:var(--ink)}
+  .md-brief .md-table tr:nth-child(even) td{background:#fffdfc}
+
+  /* ---- modal ---- */
+  .overlay{position:fixed;inset:0;background:rgba(44,27,34,.45);backdrop-filter:blur(3px);
+    display:none;place-items:center;z-index:50;padding:1.5rem}
+  .overlay.show{display:grid}
+  .modal{background:var(--paper);border-radius:18px;max-width:460px;width:100%;
+    padding:1.8rem;box-shadow:0 30px 70px -30px rgba(124,58,237,.6);border:1px solid var(--blush-deep)}
+  .modal h3{font-family:var(--display);font-weight:600;color:var(--wine);font-size:1.5rem;margin-bottom:.3rem}
+  .modal p.sub{color:var(--wine-soft);font-size:.9rem;margin-bottom:1.3rem;line-height:1.4}
+  .field{margin-bottom:1rem}
+  .field label{display:block;font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--wine-soft);margin-bottom:.4rem}
+  .field input,.field select,.field textarea{width:100%;border:1px solid var(--blush-deep);border-radius:10px;
+    padding:.7rem .8rem;font-family:var(--body);font-size:.95rem;color:var(--ink);background:var(--cream)}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--rose);outline-offset:1px;border-color:var(--rose)}
+  .field textarea{resize:vertical;min-height:64px}
+  .field .hint{font-size:.74rem;color:var(--wine-soft);margin-top:.3rem;line-height:1.35}
+  .modal-actions{display:flex;gap:.7rem;margin-top:1.4rem}
+  .btn-primary{flex:1;background:var(--rose);color:#fff;border:none;border-radius:10px;padding:.8rem;
+    font-family:var(--mono);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+  .btn-primary:hover{background:var(--wine)}
+  .btn-ghost{background:transparent;color:var(--wine-soft);border:1px solid var(--blush-deep);border-radius:10px;
+    padding:.8rem 1.1rem;font-family:var(--mono);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+  .btn-ghost:hover{border-color:var(--rose);color:var(--rose)}
+
+  /* toast */
+  .toast{position:fixed;bottom:1.4rem;left:50%;transform:translateX(-50%) translateY(140%);
+    background:var(--wine);color:var(--cream);padding:.8rem 1.3rem;border-radius:12px;font-size:.9rem;
+    box-shadow:0 18px 40px -18px rgba(124,58,237,.7);z-index:60;transition:transform .35s cubic-bezier(.76,0,.24,1);max-width:90vw}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast b{color:var(--rose-soft)}
+
+  .hidden{display:none !important}
+  @media (max-width:760px){
+    .shell{grid-template-columns:1fr}
+    .side{position:static;flex-direction:row;flex-wrap:wrap;gap:1rem}
+    .side > div{flex:1;min-width:160px}
+  }
+  .cc-foot{text-align:center;color:var(--wine-soft);font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;
+    text-transform:uppercase;padding:1.15rem 1rem 1.5rem;border-top:1px solid var(--blush-deep);margin-top:.25rem}
+  .cc-foot span{color:var(--rose);margin:0 .5rem}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="mark"><svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="arcAId logo"><circle cx="50" cy="50" r="46" stroke="#4F2FE3" stroke-width="4" fill="none"/><path d="M25 76 L25 47 A16 16 0 0 1 57 47 L57 76" stroke="#B98BD9" stroke-width="11" stroke-linecap="round" fill="none"/><path d="M34 76 L34 49 A7 7 0 0 1 48 49 L48 76" stroke="#4F2FE3" stroke-width="8" stroke-linecap="round" fill="none"/><rect x="63" y="47" width="8" height="29" rx="3" fill="#4F2FE3"/><path d="M67 26 L69.6 33.4 L77 36 L69.6 38.6 L67 46 L64.4 38.6 L57 36 L64.4 33.4 Z" fill="#B98BD9"/></svg></div>
+    <div>
+      <div class="name">arcAId</div>
+      <div class="tag">Business Control Center</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="bridge-pill" id="bridgePill" title="">checking…</span>
+    <button class="add-top" id="addTop">＋ Add skill</button>
+  </div>
+</div>
+
+<div class="shell">
+  <!-- sidebar -->
+  <aside class="side">
+    <div>
+      <div class="label">Sections</div>
+      <div class="nav" id="nav"></div>
+    </div>
+    <div>
+      <div class="label">★ Favorites</div>
+      <div class="fav-rail" id="favRail"></div>
+    </div>
+  </aside>
+
+  <!-- main -->
+  <main class="main" id="main"></main>
+</div>
+
+<div class="cc-foot">Training &amp; Workshops by arcAId <span>|</span> Technology by Feranse</div>
+
+<!-- add/edit modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="modalTitle">Add a skill</h3>
+    <p class="sub">Drop any Claude skill into your control center. Give it a name, pick a section, and point it at the skill trigger.</p>
+    <div class="field">
+      <label>Skill name</label>
+      <input id="fName" placeholder="e.g. Cash Flow Snapshot">
+    </div>
+    <div class="field">
+      <label>What it does</label>
+      <textarea id="fDesc" placeholder="One line the future you will understand at a glance."></textarea>
+    </div>
+    <div class="field">
+      <label>Section</label>
+      <select id="fSection">
+        <option value="home">Home</option>
+        <option value="finance">Finance</option>
+        <option value="marketing">Marketing</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Scheduled task ID</label>
+      <input id="fTask" placeholder="e.g. cash-flow-run">
+      <div class="hint">The scheduled task this Run button triggers. Leave blank if there's no task yet — ask Claude to create one that runs your skill and writes its result into control-center-results/.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="saveSkill">Save skill</button>
+      <button class="btn-ghost" id="cancelSkill">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!--
+  RESULTS CHANNEL
+  A finished skill run writes its dashboard here. Keyed by skill id.
+  Each value is { "when": "Jun 24 · 9:14am", ... } plus ONE of:
+    "md":  "<base64 of a Markdown brief>"   -> the UI renders + brand-styles it (use this for the morning routine)
+    "b64": "<base64 of a self-contained HTML fragment>"  -> injected as-is (use for real HTML dashboards: finance, instagram)
+  Base64 avoids any quoting/escaping problems. The UI decodes and renders it into #result-<id>.
+-->
+<script id="cc-results" type="application/json">{}</script>
+
+<script>
+(function(){
+  "use strict";
+  const LS_KEY = "feranse_cc_v1";
+
+  // results injected by finished runs (read-only from the artifact HTML)
+  const RESULTS = (function(){
+    try{ return JSON.parse(document.getElementById("cc-results").textContent || "{}"); }
+    catch(e){ return {}; }
+  })();
+  function b64decode(b64){
+    try{
+      return decodeURIComponent(Array.prototype.map.call(atob(b64),
+        c=>"%"+("00"+c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+    }catch(e){ try{ return atob(b64); }catch(_){ return ""; } }
+  }
+
+  const SECTIONS = {
+    home:      { eyebrow:"Start your day", title:"Home", lede:"Your daily kickoff. Run your morning routine and anything you want waiting for you each morning." },
+    finance:   { eyebrow:"Money in motion", title:"Finance", lede:"Understand your cash. Run your statement analysis and see the dashboard right here, in one place." },
+    marketing: { eyebrow:"Reach & resonance", title:"Marketing", lede:"Grow your audience. Audit your content and turn your own data into a posting strategy." }
+  };
+
+  // Seed skills — the three you asked for. Everything here is editable, removable, and favoritable.
+  const SEED = [
+    { id:"morning-routine", section:"home", name:"Morning Routine",
+      desc:"Pulls your calendar, inbox, top priority, a lift for the day, and a headline or two into one brief.",
+      tag:"morning-briefing", taskId:"morning-routine-run", driveTitle:"Feranse CC - morning-routine", driveFolderId:"1eH4aiIEgTV3WlBEufOHdpJ_oM2kE22KI", fav:true },
+    { id:"bank-analysis", section:"finance", name:"Bank Statement Analysis",
+      desc:"Upload your bank statement PDF — it categorizes every transaction and summarizes your cash flow.",
+      tag:"bank-statement-analyzer", taskId:"bank-analysis-run",
+      driveTitle:"Feranse CC - bank-analysis", driveFolderId:"16s4C40drZQy24z43uGtukMLGiPP0SkUi", driveInput:"Feranse CC - bank-input", needsFile:true, accept:"application/pdf,.pdf", uploadLabel:"PDF", fav:true },
+    { id:"instagram", section:"marketing", name:"Instagram Dashboard",
+      desc:"Upload your Instagram data export (.zip) — it audits your content and builds a posting strategy.",
+      tag:"instagram-export-dashboard", taskId:"instagram-dashboard-run",
+      driveTitle:"Feranse CC - instagram", driveFolderId:"1QFflEcDWBw8Hz_U68KNeH9ENg5YRc2KS", driveInput:"Feranse CC - instagram-input", needsFile:true, accept:".zip,application/zip", uploadLabel:"ZIP", fav:false }
+  ];
+  // Fallback map so older saved state (without taskId) still triggers the right task.
+  const TASK_MAP = { "morning-routine":"morning-routine-run", "bank-analysis":"bank-analysis-run", "instagram":"instagram-dashboard-run" }; // cartoonify removed
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      if(raw){ const d = JSON.parse(raw); if(Array.isArray(d.skills)) return d; }
+    }catch(e){}
+    return { skills: SEED.map(s=>({...s})), active:"home" };
+  }
+  function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+
+  let state = load();
+
+  // Backfill seed-managed fields (taskId, driveTitle, tag) onto skills that were
+  // persisted to localStorage before those fields existed — otherwise an old saved
+  // Morning Routine has no driveTitle and the Drive read + Refresh button never appear.
+  (function migrate(){
+    let changed = false;
+    // Purge the retired Cartoonify skill from boards that saved it, and leave its section if active.
+    const before = state.skills.length;
+    state.skills = state.skills.filter(x => x.id !== "cartoonify");
+    if(state.skills.length !== before) changed = true;
+    if(state.active === "creative"){ state.active = "home"; changed = true; } // creative section removed
+    for(const seed of SEED){
+      const s = state.skills.find(x => x.id === seed.id);
+      if(!s){ state.skills.push({...seed}); changed = true; continue; } // add seed skills missing from older saved boards
+      ["taskId","driveTitle","driveFolderId","driveInput","needsFile","accept","uploadLabel","tag"].forEach(k=>{ if(seed[k] && !s[k]){ s[k] = seed[k]; changed = true; } });
+    }
+    if(changed) save();
+  })();
+
+  let editingId = null;
+
+  const main   = document.getElementById("main");
+  const nav    = document.getElementById("nav");
+  const favRail= document.getElementById("favRail");
+  const overlay= document.getElementById("overlay");
+  const toastEl= document.getElementById("toast");
+
+  function monogram(name){ return (name.trim()[0]||"•").toUpperCase(); }
+  function esc(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+  // Tiny, safe Markdown renderer — built for the morning-briefing skill's output
+  // structure (#, ##, **bold**, > quote, - lists, --- rules, [links](url)).
+  function renderMarkdown(md){
+    function inline(t){
+      return esc(t)
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
+        .replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>")
+        .replace(/(^|[^*])\*([^*]+)\*/g,"$1<em>$2</em>");
+    }
+    const isRow = (l)=> /^\s*\|.*\|\s*$/.test(l||"");
+    const cellsOf = (l)=>{ let s=(l||"").trim(); if(s.startsWith("|")) s=s.slice(1); if(s.endsWith("|")) s=s.slice(0,-1); return s.split("|").map(c=>c.trim()); };
+    const isSep = (l)=>{ if(!isRow(l)) return false; const cs=cellsOf(l); return cs.length>0 && cs.every(c=>/^:?-+:?$/.test(c.replace(/\s/g,""))); };
+
+    const lines = (md||"").replace(/\r/g,"").split("\n");
+    let out = "", inList = false;
+    const closeList = ()=>{ if(inList){ out += "</ul>"; inList = false; } };
+    for(let i=0;i<lines.length;i++){
+      const raw = lines[i];
+      const line = raw.trimEnd();
+      // table: a header row, then a |---|---| separator — tolerating blank lines
+      // between rows (Google Docs inserts a blank line after every paragraph).
+      if(isRow(line)){
+        let p = i+1;
+        while(p<lines.length && lines[p].trim()==="") p++;      // skip blanks to find the separator
+        if(p<lines.length && isSep(lines[p])){
+          closeList();
+          const header = cellsOf(line);
+          const body = [];
+          let j = p+1;
+          while(j<lines.length){
+            if(lines[j].trim()===""){ j++; continue; }           // skip blank spacer lines between rows
+            if(isRow(lines[j]) && !isSep(lines[j])){ body.push(cellsOf(lines[j])); j++; }
+            else break;                                          // first non-row line ends the table
+          }
+          out += '<table class="md-table"><thead><tr>' + header.map(c=>"<th>"+inline(c)+"</th>").join("") +
+                 "</tr></thead><tbody>" + body.map(r=>"<tr>"+r.map(c=>"<td>"+inline(c)+"</td>").join("")+"</tr>").join("") +
+                 "</tbody></table>";
+          i = j-1; continue;
+        }
+      }
+      if(/^#\s+/.test(line)){ closeList(); out += "<h1>"+inline(line.replace(/^#\s+/,""))+"</h1>"; }
+      else if(/^##\s+/.test(line)){ closeList(); out += "<h2>"+inline(line.replace(/^#+\s+/,""))+"</h2>"; }
+      else if(/^>\s?/.test(line)){ closeList(); out += "<blockquote>"+inline(line.replace(/^>\s?/,""))+"</blockquote>"; }
+      else if(/^(-{3,}|\*{3,})$/.test(line)){ closeList(); out += "<hr>"; }
+      else if(/^[-*]\s+/.test(line)){ if(!inList){ out += "<ul>"; inList = true; } out += "<li>"+inline(line.replace(/^[-*]\s+/,""))+"</li>"; }
+      else if(line === ""){ closeList(); }
+      else { closeList(); out += "<p>"+inline(line)+"</p>"; }
+    }
+    closeList();
+    return '<div class="md-brief">'+out+"</div>";
+  }
+
+  function toast(msg){
+    toastEl.innerHTML = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=>toastEl.classList.remove("show"), 4200);
+  }
+
+  // ----- navigation -----
+  function renderNav(){
+    nav.innerHTML = "";
+    const icons = { home:"⌂", finance:"$", marketing:"◎" }; // creative icon removed with the cartoonify skill
+    Object.keys(SECTIONS).forEach(key=>{
+      const count = state.skills.filter(s=>s.section===key).length;
+      const b = document.createElement("button");
+      b.className = "nav-item" + (state.active===key ? " on":"");
+      b.innerHTML = `<span class="ico">${icons[key]||"•"}</span><span>${SECTIONS[key].title}</span><span class="cnt">${count}</span>`;
+      b.onclick = ()=>{ state.active=key; save(); render(); };
+      nav.appendChild(b);
+    });
+  }
+
+  function renderFav(){
+    favRail.innerHTML = "";
+    const favs = state.skills.filter(s=>s.fav);
+    if(!favs.length){ favRail.innerHTML = `<div class="fav-empty">Star the skills you run most and they'll live here for one-click access.</div>`; return; }
+    favs.forEach(s=>{
+      const c = document.createElement("div");
+      c.className = "fav-chip";
+      c.innerHTML = `<span class="star">★</span><span>${esc(s.name)}</span>`;
+      c.onclick = ()=>{ state.active=s.section; save(); render(); setTimeout(()=>runSkill(s.id), 60); };
+      favRail.appendChild(c);
+    });
+  }
+
+  // ----- main section -----
+  function render(){
+    renderNav(); renderFav();
+    const sec = SECTIONS[state.active];
+    const skills = state.skills.filter(s=>s.section===state.active);
+
+    main.innerHTML = `
+      <div class="sec-head">
+        <div class="eyebrow">${esc(sec.eyebrow)}</div>
+        <h2>${esc(sec.title)}</h2>
+        <p class="lede">${esc(sec.lede)}</p>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="results-wrap" id="resultsWrap"></div>
+    `;
+
+    const grid = document.getElementById("grid");
+    skills.forEach(s=> grid.appendChild(skillCard(s)) );
+    const add = document.createElement("div");
+    add.className = "add-card";
+    add.innerHTML = `<div><span class="plus">＋</span>Add a skill</div>`;
+    add.onclick = ()=> openModal(state.active);
+    grid.appendChild(add);
+
+    // results zone
+    const rw = document.getElementById("resultsWrap");
+    if(skills.length){
+      rw.innerHTML = `<div class="eyebrow">Results</div>`;
+      skills.forEach(s=> rw.appendChild(resultCard(s)) );
+    }
+  }
+
+  function skillCard(s){
+    const el = document.createElement("div");
+    el.className = "card" + (s.fav ? " is-fav":"");
+    el.innerHTML = `
+      <div class="card-top">
+        <div class="mono-badge">${monogram(s.name)}</div>
+        <div style="min-width:0">
+          <h3>${esc(s.name)}</h3>
+          <div class="skill-tag">/${esc(s.tag||s.id)}</div>
+        </div>
+        <button class="star-btn ${s.fav?"on":""}" title="Favorite">${s.fav?"★":"☆"}</button>
+      </div>
+      <p class="desc">${esc(s.desc)}</p>
+      <div class="status" data-status></div>
+      <div class="card-actions">
+        ${s.needsFile ? `<label class="upload-btn" title="Upload your file to Google Drive"><span class="ub-txt">⬆ ${esc(s.uploadLabel || "Upload")}</span><input type="file" accept="${esc(s.accept||"")}" hidden data-upload></label>` : ""}
+        <button class="run-btn">▶ Run</button>
+        <button class="icon-btn" title="Edit" data-edit>✎</button>
+        <button class="icon-btn" title="Remove" data-del>×</button>
+      </div>
+    `;
+    el.querySelector(".star-btn").onclick = ()=>{ s.fav=!s.fav; save(); render(); };
+    el.querySelector(".run-btn").onclick  = ()=> runSkill(s.id, el);
+    if(s.needsFile){
+      const inp = el.querySelector("[data-upload]");
+      if(inp) inp.onchange = ()=> handleUpload(s, inp, el.querySelector("[data-status]"));
+    }
+    el.querySelector("[data-edit]").onclick = ()=> openModal(s.section, s.id);
+    el.querySelector("[data-del]").onclick  = ()=>{
+      if(confirm(`Remove "${s.name}" from your control center? (The skill itself isn't deleted.)`)){
+        state.skills = state.skills.filter(x=>x.id!==s.id); save(); render();
+      }
+    };
+    return el;
+  }
+
+  // A skill's results live in its own Drive folder. The panel shows a run picker
+  // (past runs, newest first) and renders the selected run. Custom skills without a
+  // folder fall back to the legacy in-memory RESULTS slot.
+  function resultCard(s){
+    const wrap = document.createElement("div");
+    wrap.className = "result-card";
+    const folder = !!s.driveFolderId;
+    wrap.innerHTML = `
+      <div class="rc-head">
+        <span class="rc-name">${esc(s.name)}</span>
+        ${folder ? `<select class="run-select" title="Past runs" style="display:none"></select><button class="rc-refresh" title="Refresh runs from Drive">↻</button>` : ""}
+        <span class="rc-when">${folder ? "loading…" : "awaiting first run"}</span>
+      </div>
+      <div class="result-body"><div class="result-canvas" id="result-${esc(s.id)}"></div></div>`;
+    const canvas = wrap.querySelector(".result-canvas");
+    if(folder){
+      wrap.querySelector(".run-select").onchange = (e)=> showRun(s, e.target.value);
+      wrap.querySelector(".rc-refresh").onclick = ()=> loadSkillRuns(s, {});
+      canvas.innerHTML = `<div class="result-empty">Loading runs…</div>`;
+      if(!runsLoaded.has(s.id)){ setTimeout(()=> loadSkillRuns(s, {}), 0); }
+      else {                                         // already listed this session — render from cache
+        fillRunSelect(s);
+        if(CUR[s.id]) showRun(s, CUR[s.id]);
+        else if((RUNS[s.id]||[]).length===0) canvas.innerHTML = `<div class="result-empty">No runs yet — click <b>▶ Run</b> to generate one.</div>`;
+      }
+    } else {
+      const res = RESULTS[s.id];
+      wrap.querySelector(".rc-when").textContent = res && res.when ? esc(res.when) : "awaiting first run";
+      let body;
+      if(res && res.md){ body = renderMarkdown(b64decode(res.md)); }
+      else if(res && res.mdRaw){ body = renderMarkdown(res.mdRaw); }
+      else if(res && res.b64){ body = b64decode(res.b64); }
+      else if(res && res.htmlRaw){ body = res.htmlRaw; }
+      else { body = `<div class="result-empty">Run <b>${esc(s.name)}</b> and its result will appear here.</div>`; }
+      canvas.innerHTML = body;
+    }
+    return wrap;
+  }
+
+  // ----- run a skill by triggering its scheduled task -----
+  function taskOf(s){ return s.taskId || TASK_MAP[s.id] || null; }
+
+  // The runtime exposes window.cowork.runScheduledTask for artifacts. Detect it
+  // and reflect readiness in the top-bar pill.
+  let CAN_RUN = false;
+  function detectRunner(){
+    CAN_RUN = !!(window.cowork && typeof window.cowork.runScheduledTask === "function");
+    const pill = document.getElementById("bridgePill");
+    if(!pill) return;
+    if(CAN_RUN){
+      pill.className = "bridge-pill on";
+      pill.textContent = "Run ready";
+      pill.title = "Run buttons trigger each skill's scheduled task directly.";
+      pill.onclick = ()=> toast("Run buttons trigger each skill's scheduled task. Reload a panel after a run to see its result.");
+    } else {
+      pill.className = "bridge-pill off";
+      pill.textContent = "Open in Cowork";
+      pill.title = "Triggering runs needs the Cowork runtime. Open this dashboard from the Cowork sidebar.";
+      pill.onclick = ()=> toast("Open this dashboard from the Cowork sidebar to trigger runs.");
+    }
+  }
+
+  function runSkill(id, cardEl){
+    const s = state.skills.find(x=>x.id===id);
+    if(!s) return;
+    const statusEl = cardEl ? cardEl.querySelector("[data-status]") : null;
+    const setStatus = (html)=>{ if(statusEl) statusEl.innerHTML = html; };
+    const taskId = taskOf(s);
+
+    if(!taskId){
+      setStatus(`<span class="dot"></span> No task wired`);
+      toast(`<b>${esc(s.name)}</b> has no scheduled task yet — ask Claude to create one.`);
+      return;
+    }
+    if(!(window.cowork && typeof window.cowork.runScheduledTask === "function")){
+      setStatus(`<span class="dot"></span> Open in Cowork to run`);
+      toast(`Open this dashboard from the Cowork sidebar to trigger <b>${esc(s.name)}</b>.`);
+      return;
+    }
+
+    const watching = !!s.driveFolderId;
+    setStatus(`<span class="dot run"></span> Running…${watching ? " watching for the new run" : " reload when it finishes"}`);
+    Promise.resolve(window.cowork.runScheduledTask(taskId)).then(()=>{
+      s.lastRun = Date.now(); save();
+      if(watching){
+        setStatus(`<span class="dot run"></span> Running… new run will appear here`);
+        toast(`Running <b>${esc(s.name)}</b>. Watching its folder — the new run drops in when it's ready.`);
+        pollRuns(s);
+      } else {
+        setStatus(`<span class="dot done"></span> Started — result lands below`);
+        toast(`Running <b>${esc(s.name)}</b>. Hit Reload on this panel when it's done.`);
+      }
+    }).catch(()=>{
+      setStatus(`<span class="dot"></span> Couldn't start`);
+      toast(`Couldn't start <b>${esc(s.name)}</b>. In the Scheduled sidebar, click "Run now" on <b>${esc(taskId)}</b> once to approve it.`);
+    });
+  }
+
+  // ----- modal: add / edit -----
+  function openModal(section, id){
+    editingId = id || null;
+    document.getElementById("modalTitle").textContent = id ? "Edit skill" : "Add a skill";
+    const s = id ? state.skills.find(x=>x.id===id) : null;
+    document.getElementById("fName").value    = s ? s.name : "";
+    document.getElementById("fDesc").value    = s ? s.desc : "";
+    document.getElementById("fSection").value = s ? s.section : (section||"home");
+    document.getElementById("fTask").value    = s ? (s.taskId||"") : "";
+    overlay.classList.add("show");
+    setTimeout(()=>document.getElementById("fName").focus(), 50);
+  }
+  function closeModal(){ overlay.classList.remove("show"); editingId=null; }
+
+  function saveSkill(){
+    const name = document.getElementById("fName").value.trim();
+    if(!name){ toast("Give your skill a name first."); return; }
+    const desc = document.getElementById("fDesc").value.trim() || "Custom skill.";
+    const section = document.getElementById("fSection").value;
+    const taskId = document.getElementById("fTask").value.trim();
+
+    if(editingId){
+      const s = state.skills.find(x=>x.id===editingId);
+      Object.assign(s, { name, desc, section, taskId });
+    } else {
+      const baseId = name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || ("skill-"+Date.now());
+      let uid = baseId, n=2; while(state.skills.some(x=>x.id===uid)){ uid = baseId+"-"+(n++); }
+      state.skills.push({ id:uid, section, name, desc, tag:uid, taskId, fav:false });
+    }
+    save(); closeModal();
+    state.active = section; render();
+    toast(editingId ? "Saved." : `Added <b>${esc(name)}</b> to ${SECTIONS[section].title}.`);
+  }
+
+  document.getElementById("addTop").onclick = ()=> openModal(state.active);
+  document.getElementById("saveSkill").onclick = saveSkill;
+  document.getElementById("cancelSkill").onclick = closeModal;
+  overlay.onclick = (e)=>{ if(e.target===overlay) closeModal(); };
+  document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeModal(); });
+
+  // ----- local results directory -----
+  // When this file is opened directly from the folder, results are read from
+  // ./control-center-results/ : a results.json manifest { id: {when,file,fmt} }
+  // plus one fragment file per skill. In the Cowork render these fetches just
+  // fail (sandboxed) and we fall back to the embedded cc-results JSON above.
+  const RESULTS_DIR = "control-center-results";
+  async function loadLocalResults(){
+    let manifest;
+    try{
+      const r = await fetch(RESULTS_DIR + "/results.json", { cache:"no-store" });
+      if(!r.ok) return;
+      manifest = await r.json();
+    }catch(e){ return; }            // not in local-file mode — keep cc-results
+    let changed = false;
+    for(const id in manifest){
+      const m = manifest[id] || {};
+      if(!m.file) continue;
+      try{
+        const fr = await fetch(RESULTS_DIR + "/" + m.file, { cache:"no-store" });
+        if(!fr.ok) continue;
+        const txt = await fr.text();
+        RESULTS[id] = { when: m.when || "", [ m.fmt === "md" ? "mdRaw" : "htmlRaw" ]: txt };
+        changed = true;
+      }catch(e){}
+    }
+    if(changed) render();
+  }
+
+  // ----- Google Drive results (a scheduled task writes a Doc, the dashboard reads it) -----
+  // The skill's run writes its brief to a Google Doc titled `driveTitle`; we search for it,
+  // read it back, and render it. Google Docs export escapes markdown punctuation with
+  // backslashes (\#, \*\*, \-, \>), so we strip those before rendering.
+  const DRIVE_SEARCH   = "mcp__a2f86dc4-aa35-4e4a-b76a-83f5f6480797__search_files";
+  const DRIVE_READ     = "mcp__a2f86dc4-aa35-4e4a-b76a-83f5f6480797__read_file_content";
+  const DRIVE_CREATE   = "mcp__a2f86dc4-aa35-4e4a-b76a-83f5f6480797__create_file";
+  const DRIVE_DOWNLOAD = "mcp__a2f86dc4-aa35-4e4a-b76a-83f5f6480797__download_file_content";
+
+  // Read a file as base64 (strip the data: URL prefix) for upload to Drive.
+  function fileToB64(file){
+    return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(",")[1]||""); r.onerror=()=>rej(new Error("couldn't read file")); r.readAsDataURL(file); });
+  }
+  // Upload a picked file to Drive under the skill's input title, so the task can fetch it.
+  // Large files exceed the single-call upload limit, so we slice them into parts and upload
+  // each separately; the task stitches the parts back together. Small files upload as one.
+  const UPLOAD_CHUNK = 300 * 1024;   // raw bytes per part (~400KB base64 per call)
+  function pad2(n){ return String(n).padStart(2,"0"); }
+  async function uploadOne(title, blob, mime){
+    const b64 = await fileToB64(blob);
+    const r = await window.cowork.callMcpTool(DRIVE_CREATE, { title, base64Content: b64, contentMimeType: mime, disableConversionToGoogleType: true });
+    if(r && r.isError) throw new Error((r.content && r.content[0] && r.content[0].text) || "upload error");
+  }
+  async function handleUpload(s, inp, statusEl){
+    const file = inp.files && inp.files[0]; if(!file) return;
+    const setStatus = (h)=>{ if(statusEl) statusEl.innerHTML = h; };
+    const lbl = inp.closest(".upload-btn");
+    const txt = lbl ? lbl.querySelector(".ub-txt") : null;
+    const orig = txt ? txt.innerHTML : "";
+    const setBtn = (h)=>{ if(txt) txt.innerHTML = h; };
+    if(!(window.cowork && typeof window.cowork.callMcpTool === "function")){
+      setStatus(`<span class="dot"></span> Open in Cowork to upload`);
+      toast("Open this dashboard from the Cowork sidebar to upload files.");
+      inp.value = ""; return;
+    }
+    const mime = file.type || "application/octet-stream";
+    const total = Math.max(1, Math.ceil(file.size / UPLOAD_CHUNK));
+    if(lbl) lbl.classList.add("busy");
+    try{
+      if(total === 1){
+        setBtn(`<span class="spin"></span> Uploading`);
+        setStatus(`<span class="spin"></span> Uploading ${esc(file.name)}…`);
+        await uploadOne(s.driveInput, file, mime);
+      } else {
+        const uploadId = "U" + Date.now();
+        for(let i=0;i<total;i++){
+          setBtn(`<span class="spin"></span> ${i+1}/${total}`);
+          setStatus(`<span class="spin"></span> Uploading ${esc(file.name)} — part ${i+1} of ${total}…`);
+          const blob = file.slice(i*UPLOAD_CHUNK, (i+1)*UPLOAD_CHUNK);
+          await uploadOne(`${s.driveInput} :: ${uploadId} :: ${pad2(i+1)}/${pad2(total)}`, blob, mime);
+        }
+      }
+      setBtn(`✓ Uploaded`);
+      setStatus(`<span class="dot done"></span> Uploaded ✓ — now click ▶ Run`);
+      toast(`✓ <b>${esc(file.name)}</b> uploaded${total>1?` in ${total} parts`:""} — ready to run.`);
+      setTimeout(()=>{ setBtn(orig); if(lbl) lbl.classList.remove("busy"); }, 2800);
+    }catch(e){
+      setBtn(orig); if(lbl) lbl.classList.remove("busy");
+      setStatus(`<span class="dot"></span> Upload failed`);
+      toast(`Upload failed: <b>${esc(String(e.message||e)).slice(0,180)}</b>`);
+    }
+    inp.value = "";
+  }
+  function parseMcp(r){ try{ return r.structuredContent ?? JSON.parse(r.content[0].text); }catch(e){ return null; } }
+  function unescapeMd(t){ return (t||"").replace(/\\([#*_>\-\[\]()`~!+.])/g, "$1"); }
+  function driveWhen(iso){ if(!iso) return "from Drive"; try{ return new Date(iso).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}); }catch(e){ return "from Drive"; } }
+  function b64ToBytes(b64){ const bin = atob(b64); const u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i); return u; }
+  async function gunzip(bytes){ const s = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip")); return await new Response(s).text(); }
+
+  // ----- per-skill run history (each skill has its own Drive folder) -----
+  const RUNS = {};               // skillId -> [ {id, when, stamp, mimeType} ] newest first
+  const CUR  = {};               // skillId -> selected fileId
+  const HTMLC = {};              // fileId -> decoded html (cache)
+  const runsLoaded = new Set();  // skills whose folder we've listed this session
+
+  async function listRuns(folderId){
+    if(!(window.cowork && typeof window.cowork.callMcpTool === "function")) return null;
+    try{
+      const r = await window.cowork.callMcpTool(DRIVE_SEARCH, {
+        query: "parentId = '" + folderId + "' and mimeType != 'application/vnd.google-apps.folder'",
+        pageSize: 50
+      });
+      const d = parseMcp(r);
+      const files = ((d && d.files) || []).filter(f => (f.mimeType||"").indexOf("folder") < 0);
+      files.sort((a,b)=> new Date(b.createdTime||b.modifiedTime||0) - new Date(a.createdTime||a.modifiedTime||0));
+      return files.map(f => ({ id:f.id, when:(f.title||"").trim() || driveWhen(f.createdTime||f.modifiedTime), stamp:f.createdTime||f.modifiedTime, mimeType:f.mimeType }));
+    }catch(e){ return null; }
+  }
+
+  async function loadRunHtml(f){
+    if(HTMLC[f.id]) return HTMLC[f.id];
+    let rd;
+    try{ rd = parseMcp(await window.cowork.callMcpTool(DRIVE_DOWNLOAD, { fileId: f.id })); }
+    catch(e){ return null; }
+    if(!rd || !rd.content) return null;
+    const bytes = b64ToBytes(rd.content);
+    let html;
+    if(bytes.length > 2 && bytes[0] === 0x1f && bytes[1] === 0x8b){          // gzip magic → decompress
+      try{ html = await gunzip(bytes); }
+      catch(e){ html = '<div style="padding:1rem;color:#b3433f">Couldn\'t decompress this run.</div>'; }
+    } else {
+      try{ html = new TextDecoder("utf-8").decode(bytes); }catch(e){ html = ""; }
+    }
+    HTMLC[f.id] = html;
+    return html;
+  }
+
+  function panelEls(s){
+    const canvas = document.getElementById("result-" + s.id);
+    const card = canvas ? canvas.closest(".result-card") : null;
+    return { canvas, sel: card && card.querySelector(".run-select"), whenEl: card && card.querySelector(".rc-when") };
+  }
+  function fillRunSelect(s){
+    const { sel } = panelEls(s); if(!sel) return;
+    const runs = RUNS[s.id] || [];
+    sel.innerHTML = runs.map(r => `<option value="${esc(r.id)}">${esc(r.when)}</option>`).join("");
+    sel.style.display = runs.length > 1 ? "" : "none";
+    if(CUR[s.id]) sel.value = CUR[s.id];
+  }
+  async function showRun(s, fileId){
+    const { canvas, whenEl } = panelEls(s);
+    const run = (RUNS[s.id]||[]).find(r=>r.id===fileId);
+    if(!canvas || !run) return;
+    CUR[s.id] = fileId;
+    if(whenEl) whenEl.textContent = run.when;
+    if(!HTMLC[fileId]) canvas.innerHTML = `<div class="result-empty">Loading run…</div>`;
+    const html = await loadRunHtml(run);
+    if(CUR[s.id] !== fileId) return;                 // selection changed while loading — drop
+    canvas.innerHTML = html || `<div class="result-empty">Couldn't load this run.</div>`;
+  }
+
+  // List a skill's folder, fill the run picker, render the chosen run (newest by default).
+  async function loadSkillRuns(s, opts){
+    opts = opts || {};
+    if(!s.driveFolderId) return;
+    runsLoaded.add(s.id);
+    const { canvas, whenEl } = panelEls(s);
+    if(!(window.cowork && typeof window.cowork.callMcpTool === "function")){
+      if(canvas) canvas.innerHTML = `<div class="result-empty">Open this dashboard from the Cowork sidebar to load runs.</div>`;
+      return;
+    }
+    const runs = await listRuns(s.driveFolderId);
+    if(runs === null){ if(canvas) canvas.innerHTML = `<div class="result-empty">Couldn't reach Drive — try ↻.</div>`; return; }
+    RUNS[s.id] = runs;
+    if(!runs.length){ fillRunSelect(s); if(canvas) canvas.innerHTML = `<div class="result-empty">No runs yet — click <b>▶ Run</b> to generate one.</div>`; if(whenEl) whenEl.textContent = "no runs yet"; return; }
+    let chosen = opts.forceId || CUR[s.id] || runs[0].id;
+    if(!runs.some(r=>r.id===chosen)) chosen = runs[0].id;
+    CUR[s.id] = chosen;
+    fillRunSelect(s);
+    await showRun(s, chosen);
+  }
+
+  // After triggering a task, watch the skill's folder for a brand-new run and switch to it.
+  function pollRuns(s){
+    const before = (RUNS[s.id] && RUNS[s.id][0] && RUNS[s.id][0].stamp) || null;
+    let n = 0; const max = 30;
+    const tick = async ()=>{
+      n++;
+      const runs = await listRuns(s.driveFolderId);
+      if(runs && runs.length && (!before || (runs[0].stamp && runs[0].stamp !== before))){
+        RUNS[s.id] = runs; CUR[s.id] = runs[0].id;
+        fillRunSelect(s); await showRun(s, runs[0].id);
+        toast(`<b>${esc(s.name)}</b> — new run added.`);
+        return;
+      }
+      if(n < max) setTimeout(tick, 6000);
+    };
+    setTimeout(tick, 6000);
+  }
+
+  detectRunner();
+  render();
+  loadLocalResults();
+})();
+</script>
+</body>
+</html>
